@@ -101,9 +101,12 @@ class SimpleDrivingSystem:
         self.client = None
         self.world = None
         self.vehicle = None
-        self.camera = None
+        self.cameras = {}  # 存储多个相机
         self.controller = None
         self.camera_image = None
+        self.current_view = 'third_person'  # 当前视角模式：'first_person', 'third_person', 'birdseye'
+        self.current_map = 'Town01'  # 当前地图
+        self.available_maps = ['Town01', 'Town02', 'Town03', 'Town04', 'Town05', 'Town06', 'Town07']  # 可用地图列表
 
     def connect(self):
         """连接到CARLA服务器"""
@@ -196,7 +199,7 @@ class SimpleDrivingSystem:
             return False
 
     def setup_camera(self):
-        """设置相机"""
+        """设置多个相机"""
         print("正在设置相机...")
 
         try:
@@ -208,36 +211,146 @@ class SimpleDrivingSystem:
             camera_bp.set_attribute('image_size_y', '480')
             camera_bp.set_attribute('fov', '90')
 
-            # 相机位置（车辆后方）
-            camera_transform = carla.Transform(
+            # 第一人称相机
+            first_person_transform = carla.Transform(
+                carla.Location(x=2.0, z=1.2),  # 驾驶座位置
+                carla.Rotation(pitch=0.0)  # 平视
+            )
+            first_person_camera = self.world.spawn_actor(
+                camera_bp, first_person_transform, attach_to=self.vehicle
+            )
+            first_person_camera.listen(lambda image: self.camera_callback(image, 'first_person'))
+            self.cameras['first_person'] = first_person_camera
+
+            # 第三人称相机
+            third_person_transform = carla.Transform(
                 carla.Location(x=-8.0, z=6.0),  # 在车辆后方上方
                 carla.Rotation(pitch=-20.0)  # 向下看
             )
-
-            # 生成相机
-            self.camera = self.world.spawn_actor(
-                camera_bp, camera_transform, attach_to=self.vehicle
+            third_person_camera = self.world.spawn_actor(
+                camera_bp, third_person_transform, attach_to=self.vehicle
             )
+            third_person_camera.listen(lambda image: self.camera_callback(image, 'third_person'))
+            self.cameras['third_person'] = third_person_camera
 
-            # 设置回调函数
-            self.camera.listen(lambda image: self.camera_callback(image))
+            # 鸟瞰图相机
+            birdseye_transform = carla.Transform(
+                carla.Location(x=0.0, z=30.0),  # 车辆正上方30米
+                carla.Rotation(pitch=-90.0)  # 垂直向下
+            )
+            birdseye_camera = self.world.spawn_actor(
+                camera_bp, birdseye_transform, attach_to=self.vehicle
+            )
+            birdseye_camera.listen(lambda image: self.camera_callback(image, 'birdseye'))
+            self.cameras['birdseye'] = birdseye_camera
 
-            print("相机设置成功")
+            print("相机设置成功 - 已创建三个视角相机")
             return True
 
         except Exception as e:
             print(f"设置相机时出错: {e}")
             return False
 
-    def camera_callback(self, image):
+    def camera_callback(self, image, view_mode=None):
         """相机数据回调"""
         try:
-            # 转换图像数据
-            array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
-            array = np.reshape(array, (image.height, image.width, 4))
-            self.camera_image = array[:, :, :3]  # RGB通道
+            # 只有当前视角的相机数据才会被使用
+            if view_mode == self.current_view:
+                # 转换图像数据
+                array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
+                array = np.reshape(array, (image.height, image.width, 4))
+                self.camera_image = array[:, :, :3]  # RGB通道
         except:
             pass
+
+    def update_camera_view(self):
+        """更新相机视角"""
+        print(f"已切换到{self.get_view_name()}视角")
+
+    def switch_map(self):
+        """切换到下一个地图"""
+        try:
+            # 停止所有相机
+            for view_mode, camera in self.cameras.items():
+                if camera:
+                    try:
+                        camera.stop()
+                        camera.destroy()
+                    except:
+                        pass
+            self.cameras.clear()
+
+            # 销毁车辆
+            if self.vehicle:
+                try:
+                    self.vehicle.destroy()
+                except:
+                    pass
+                self.vehicle = None
+            
+            # 等待清理完成
+            time.sleep(1.0)
+
+            # 切换到下一个地图
+            current_index = self.available_maps.index(self.current_map)
+            next_index = (current_index + 1) % len(self.available_maps)
+            new_map = self.available_maps[next_index]
+
+            print(f"正在加载地图: {new_map}...")
+            
+            # 完全重新连接CARLA客户端
+            self.client = carla.Client('localhost', 2000)
+            self.client.set_timeout(10.0)
+            
+            # 加载新地图
+            self.world = self.client.load_world(new_map)
+            self.current_map = new_map
+            
+            # 等待地图完全加载
+            time.sleep(3.0)
+            
+            # 重新生成车辆
+            if not self.spawn_vehicle():
+                raise Exception("车辆生成失败")
+            
+            # 重新设置相机
+            if not self.setup_camera():
+                raise Exception("相机设置失败")
+            
+            # 重新设置控制器
+            self.setup_controller()
+            
+            # 重新生成NPC车辆
+            self.spawn_npc_vehicles(2)
+            
+            print(f"地图切换成功: {self.current_map}")
+            
+        except Exception as e:
+            print(f"切换地图时出错: {e}")
+            # 尝试重新加载Town01作为备份
+            try:
+                print("正在恢复到Town01...")
+                self.current_map = 'Town01'
+                time.sleep(1.0)
+                self.client = carla.Client('localhost', 2000)
+                self.client.set_timeout(10.0)
+                self.world = self.client.load_world(self.current_map)
+                time.sleep(3.0)
+                self.spawn_vehicle()
+                self.setup_camera()
+                self.setup_controller()
+                print("已恢复到Town01")
+            except Exception as e2:
+                print(f"恢复失败: {e2}")
+
+    def get_view_name(self):
+        """获取视角名称"""
+        view_names = {
+            'first_person': 'First Person',
+            'third_person': 'Third Person',
+            'birdseye': 'Birds Eye'
+        }
+        return view_names.get(self.current_view, 'Unknown')
 
     def setup_controller(self):
         """设置控制器"""
@@ -287,6 +400,8 @@ class SimpleDrivingSystem:
         print("  r - 重置车辆")
         print("  s - 紧急停止")
         print("  x - 切换倒车/前进模式（速度为0时生效）")
+        print("  v - 切换视角（第一人称/第三人称/鸟瞰图）")
+        print("  m - 切换地图（Town01/Town02/Town03等）")
         print("\n开始自动驾驶...\n")
 
         frame_count = 0
@@ -336,6 +451,16 @@ class SimpleDrivingSystem:
                         cv2.putText(display_img, "REVERSE MODE",
                                     (20, 200), cv2.FONT_HERSHEY_SIMPLEX,
                                     0.8, (0, 0, 255), 2)  # 红色显示
+                    
+                    # 显示当前视角模式
+                    cv2.putText(display_img, f"View: {self.get_view_name()}",
+                                (20, 240), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8, (0, 255, 0), 2)  # 绿色显示
+                    
+                    # 显示当前地图
+                    cv2.putText(display_img, f"Map: {self.current_map}",
+                                (20, 280), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8, (255, 255, 0), 2)  # 黄色显示
 
                     cv2.imshow('Autonomous Driving - Simple Version', display_img)
 
@@ -358,6 +483,16 @@ class SimpleDrivingSystem:
                         self.controller.toggle_reverse()
                     else:
                         print("请先减速到接近停止（速度<1km/h）再切换倒车模式")
+                elif key == ord('v'):
+                    # 切换视角模式
+                    view_modes = ['third_person', 'first_person', 'birdseye']
+                    current_index = view_modes.index(self.current_view)
+                    next_index = (current_index + 1) % len(view_modes)
+                    self.current_view = view_modes[next_index]
+                    self.update_camera_view()
+                elif key == ord('m'):
+                    # 切换地图
+                    self.switch_map()
 
                 frame_count += 1
 
@@ -427,12 +562,14 @@ class SimpleDrivingSystem:
         """清理资源"""
         print("\n正在清理资源...")
 
-        if self.camera:
-            try:
-                self.camera.stop()
-                self.camera.destroy()
-            except:
-                pass
+        # 清理所有相机
+        for view_mode, camera in self.cameras.items():
+            if camera:
+                try:
+                    camera.stop()
+                    camera.destroy()
+                except:
+                    pass
 
         if self.vehicle:
             try:
