@@ -107,6 +107,14 @@ class SimpleDrivingSystem:
         self.current_view = 'third_person'  # 当前视角模式：'first_person', 'third_person', 'birdseye'
         self.current_map = 'Town01'  # 当前地图
         self.available_maps = ['Town01', 'Town02', 'Town03', 'Town04', 'Town05', 'Town06', 'Town07']  # 可用地图列表
+        self.current_weather = 'clear'  # 当前天气
+        # 简化天气预设，使用肯定存在的天气类型
+        self.weather_presets = {
+            'clear': carla.WeatherParameters.ClearNoon,
+            'rain': carla.WeatherParameters.HardRainNoon,
+            'cloudy': carla.WeatherParameters.CloudyNoon,
+            'wet': carla.WeatherParameters.WetNoon
+        }  # 天气预设
 
     def connect(self):
         """连接到CARLA服务器"""
@@ -323,6 +331,9 @@ class SimpleDrivingSystem:
             # 重新生成NPC车辆
             self.spawn_npc_vehicles(2)
             
+            # 应用当前天气
+            self.set_weather(self.current_weather)
+            
             print(f"地图切换成功: {self.current_map}")
             
         except Exception as e:
@@ -339,9 +350,37 @@ class SimpleDrivingSystem:
                 self.spawn_vehicle()
                 self.setup_camera()
                 self.setup_controller()
+                self.set_weather(self.current_weather)
                 print("已恢复到Town01")
             except Exception as e2:
                 print(f"恢复失败: {e2}")
+
+    def set_weather(self, weather_type):
+        """设置天气"""
+        try:
+            if weather_type in self.weather_presets:
+                weather = self.weather_presets[weather_type]
+                self.world.set_weather(weather)
+                self.current_weather = weather_type
+                print(f"天气设置成功: {weather_type}")
+                return True
+            else:
+                print(f"无效的天气类型: {weather_type}")
+                return False
+        except Exception as e:
+            print(f"设置天气时出错: {e}")
+            return False
+
+    def switch_weather(self):
+        """切换到下一个天气"""
+        try:
+            weather_types = list(self.weather_presets.keys())
+            current_index = weather_types.index(self.current_weather)
+            next_index = (current_index + 1) % len(weather_types)
+            next_weather = weather_types[next_index]
+            self.set_weather(next_weather)
+        except Exception as e:
+            print(f"切换天气时出错: {e}")
 
     def get_view_name(self):
         """获取视角名称"""
@@ -402,6 +441,7 @@ class SimpleDrivingSystem:
         print("  x - 切换倒车/前进模式（速度为0时生效）")
         print("  v - 切换视角（第一人称/第三人称/鸟瞰图）")
         print("  m - 切换地图（Town01/Town02/Town03等）")
+        print("  w - 切换天气（晴天/雨天/多云/湿滑）")
         print("\n开始自动驾驶...\n")
 
         frame_count = 0
@@ -461,6 +501,11 @@ class SimpleDrivingSystem:
                     cv2.putText(display_img, f"Map: {self.current_map}",
                                 (20, 280), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.8, (255, 255, 0), 2)  # 黄色显示
+                    
+                    # 显示当前天气
+                    cv2.putText(display_img, f"Weather: {self.current_weather}",
+                                (20, 320), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.8, (255, 0, 255), 2)  # 品红色显示
 
                     cv2.imshow('Autonomous Driving - Simple Version', display_img)
 
@@ -493,6 +538,9 @@ class SimpleDrivingSystem:
                 elif key == ord('m'):
                     # 切换地图
                     self.switch_map()
+                elif key == ord('w'):
+                    # 切换天气
+                    self.switch_weather()
 
                 frame_count += 1
 
