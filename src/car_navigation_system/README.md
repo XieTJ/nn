@@ -114,7 +114,7 @@ car_navigation_system/
 ```
 screenshot_时间戳_地图名_天气_颜色.png
 ```
-示例：`screenshot_20260508_204930_Town10HD_Clear_Red.png`
+示例：`screenshot_20260508_204930_Town01_Clear_Red.png`
 
 ## 常见问题
 
