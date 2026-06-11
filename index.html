@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://wengqiuyi.github.io/nn/" />
       <link rel="shortcut icon" href="img/favicon.ico" />
     <title>神经网络</title>
     <link rel="stylesheet" href="css/theme.css" />
@@ -15,7 +15,7 @@
         // Current page data
         var mkdocs_page_name = "\u9996\u9875";
         var mkdocs_page_input_path = "index.md";
-        var mkdocs_page_url = null;
+        var mkdocs_page_url = "/nn/";
       </script>
     
     <!--[if lt IE 9]>
@@ -55,7 +55,27 @@
                 </li>
               </ul>
               <ul>
+                <li class="toctree-l1"><a class="reference internal" href="lane_detection/">车道线检测</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="car_racing_dqn_improvements/">CarRacing DQN/DoubleDQN：训练改进与可视化对比</a>
+                </li>
+              </ul>
+              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="carla_yolo_detection/">自动驾驶感知系统</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="auto_drive_seg/">自动驾驶车辆语义分割</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="mujoco_running/running.md">双足人形机器人SAC步态仿真</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="mujoco_hci_sim/">人形机器人项目</a>
                 </li>
               </ul>
       </div>
@@ -74,7 +94,7 @@
     <li><a href="." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">首页</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/OpenHUTB/nn/edit/master/docs/index.md" class="icon icon-github"> 在 GitHub 上编辑</a>
+          <a href="https://github.com/OpenHUTB/nn/edit/main/docs/index.md" class="icon icon-github"> 在 GitHub 上编辑</a>
     </li>
   </ul>
   <hr/>
@@ -89,11 +109,11 @@
 <li><a href="#perception"><strong>感知</strong></a></li>
 <li><a href="#planning"><strong>规划</strong></a></li>
 <li><a href="#control"><strong>控制</strong></a></li>
+<li><a href="#other"><strong>其他</strong></a></li>
 </ul>
 <hr />
 <h2 id="_2">入门 <span id="primary"></span></h2>
-<p><a href="carla_traffic_sign_recognition/carla_traffic_sign_recognition/"><strong>11</strong></a> — 入门热身示例<br />
-<a href="warmup/"><strong>热身</strong></a> — 入门热身示例</p>
+<p><a href="warmup/"><strong>热身</strong></a> — 入门热身示例</p>
 <p><a href="linear_regression/"><strong>线性回归</strong></a></p>
 <p><a href="linear_regression_improved/"><strong>线性回归改进</strong></a></p>
 <p><a href="linear_regression_fix/"><strong>线性回归修复</strong></a> - 修复偏置未更新bug</p>
@@ -108,28 +128,43 @@
 <p><a href="poem_generation_rnn_improved/"><strong>循环神经网络改进</strong></a></p>
 <p><a href="attention/"><strong>注意力机制</strong></a></p>
 <p><a href="gaussian_mixture/"><strong>高斯混合</strong></a></p>
+<p><a href="chap11_gaussian_mixture/"><strong>高斯混合改进</strong></a></p>
 <p><a href="RBM/"><strong>受限玻尔兹曼机</strong></a></p>
 <p><a href="RL/"><strong>强化学习</strong></a></p>
+<p><a href="rl_workspace/"><strong>强化学习工作空间</strong></a></p>
 <hr />
 <h2 id="_3">感知 <span id="perception"></span></h2>
+<p><a href="lane_detection/"><strong>车道线检测</strong></a> - 基于 OpenCV 的 Carla 场景车道线检测（分步实现）</p>
 <p><a href="carla_CAM/"><strong>carla_CAM</strong></a> - 使用类激活映射测试卷积神经网络</p>
+<p><a href="drone_hand_gesture/"><strong>用户使用手势控制 Airsim 无人机</strong></a> - 使用手势识别控制 Airsim 无人机飞行</p>
 <p><a href="edge_intelligence_V2X/"><strong>V2X路侧智能感知</strong></a> - 基于YOLOv8n的V2X路侧智能感知系统优化与实现</p>
 <p><a href="test/object_detection/"><strong>目标检测</strong></a> - 目标检测与危险评估</p>
-<p><a href="#tracking"><strong>跟踪</strong></a> 
-<a href="test/"><strong>路径追踪</strong></a></p>
+<p><a href="image_object_detection/image_object_detection/"><strong>图像目标检测</strong></a> - 多功能图像目标检测系统</p>
+<p><a href="./test.md"><strong>路径追踪</strong></a></p>
 <p><a href="traffic_sign_detection/"><strong>交通标识检测</strong></a> - 目标检测</p>
-<p><a href="td3_carracing/"><strong>td3_carracing</strong></a> - 基于 TD3 + CNN 的 CarRacing 强化学习自动驾驶系统
-<a href="UVA_flight_control_system/"><strong>无人机飞行控制</strong></a> - 基于AirSim的无人机飞行控制系统
-<a href="humanoid_balance/Humanoid_Balance/"><strong>人形机器人平衡控制</strong></a> - 基于强化学习的人形机器人平衡控制仿真</p>
+<p><a href="autonomous_driving/"><strong>基于自监督学习与PPO强化学习的自动驾驶仿真项目</strong></a> - 基于CARLA的SSL+RL自动驾驶仿真系统</p>
 <h2 id="_4">规划 <span id="planning"></span></h2>
-<p><a href="#navigation"><strong>导航</strong></a></p>
+<p><a href="carla_yolo_planner/"><strong>Carla YOLO规划器</strong></a> - Carla环境结合YOLO的自动驾驶路径规划方案</p>
+<p><a href="mujoco_running/running/"><strong>人形机器人SAC强化学习步态优化</strong></a> - 基于CPG+PD+SAC残差强化学习的缓步稳定行走仿真</p>
+<p><a href="mujoco_hci_sim/"><strong>人形机器人自主行走</strong></a> - 基于PPO强化学习的Humanoid人形机器人自主行走仿真</p>
+<p><a href="mujoco_man/mujoco_manrun/"><strong>人形机器人站立行走</strong></a> -  基于 CPG + PD 的人形机器人稳定站立与行走仿真（MuJoCo）</p>
+<p><a href="td3_carracing/"><strong>td3_carracing</strong></a> - 基于 TD3 + CNN 的 CarRacing 强化学习自动驾驶系统</p>
+<p><a href="ant_robot/%E6%9C%BA%E5%99%A8%E4%BA%BA%E4%BB%BF%E7%9C%9F%E7%B3%BB%E7%BB%9F/"><strong>机器人仿真(MuJoCo)</strong></a></p>
+<p><a href="arm_sim/"><strong>机械臂仿真系统</strong></a> - 基于MuJoCo的机械臂仿真与功能优化</p>
+<p><a href="DeFIX/docs/"><strong>CARLA自动驾驶多场景仿真项目</strong></a></p>
+<p><a href="./auto_drive_system/auto_drive_system_README"><strong>自动驾驶系统</strong></a> - 基于强化学习的自动驾驶系统</p>
 <h2 id="_5">控制  <span id="control"></span></h2>
-<p><a href="#pid">PID</a></p>
+<p><a href="UVA_flight_control_system/"><strong>无人机飞行控制</strong></a> - 基于AirSim的无人机飞行控制系统</p>
+<p><a href="humanoid_balance/Humanoid_Balance/"><strong>人形机器人平衡控制</strong></a> - 基于强化学习的人形机器人平衡控制仿真</p>
+<p><a href="improve/project/"><strong>工程规范优化</strong></a> - 多场景仿真与控制优化项目</p>
+<h1 id="_6">其他  <span id="other"></span></h1>
+<p><a href="carla_imu/carla_imu/"><strong>CARLA IMU 数据采集平台</strong></a> — CARLA惯性测量单元数据采集与可视化驾驶平台开发汇报文档</p>
+<p><a href="setup_tool/report/"><strong>setup_tool模块汇报文档</strong></a> - setup_tool 模块背景、改进内容、运行方式与效果总结</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="carla_yolo_detection/" class="btn btn-neutral float-right" title="自动驾驶感知系统">后一页 <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="lane_detection/" class="btn btn-neutral float-right" title="车道线检测">后一页 <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -157,7 +192,7 @@
     
     
     
-      <span><a href="carla_yolo_detection/" style="color: #fcfcfc">后一页 &raquo;</a></span>
+      <span><a href="lane_detection/" style="color: #fcfcfc">后一页 &raquo;</a></span>
     
   </span>
 </div>
@@ -179,5 +214,5 @@
 
 <!--
 MkDocs version : 1.5.8
-Build Date UTC : 2026-05-12 14:11:55.334988+00:00
+Build Date UTC : 2026-06-11 10:58:50.494186+00:00
 -->
