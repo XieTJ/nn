@@ -113,14 +113,17 @@ def detect_front_obstacle(vehicle, world, max_distance=50.0, angle_threshold=35.
     return min_distance
 
 # 根据检测到的标志/红绿灯控制车辆
-def control_vehicle_based_on_sign(vehicle, detected_signs, lights, simulation_time,base_control,world):
+def control_vehicle_based_on_sign(vehicle, detected_signs, lights, simulation_time, base_control, world, current_speed=None, obstacle_distance=None):
     # 计算当前车速（m/s → km/h）
-    velocity = vehicle.get_velocity()
-    current_speed = math.sqrt(velocity.x**2 + velocity.y**2 + velocity.z**2) * 3.6  # m/s to km/h
+    if current_speed is None:
+        velocity = vehicle.get_velocity()
+        current_speed = math.sqrt(velocity.x ** 2 + velocity.y ** 2 + velocity.z ** 2) * 3.6  # m/s to km/h
     print(f"当前车辆速度: {current_speed:.2f} km/h")
 
     # 障碍物检测
-    obstacle_distance = detect_front_obstacle(vehicle, world)
+    if obstacle_distance is None:
+        obstacle_distance = detect_front_obstacle(vehicle, world)
+
     if obstacle_distance is not None:
         print(f"前方障碍物距离: {obstacle_distance:.2f} 米")
         # 重新计算安全距离：车速越快，距离越长，完全避免追尾
@@ -133,7 +136,7 @@ def control_vehicle_based_on_sign(vehicle, detected_signs, lights, simulation_ti
             base_control.throttle = 0.0
 
             if obstacle_distance < safe_distance * 0.3:
-                # 极近：直接满刹，必停
+                # 极近：满刹
                 base_control.brake = 1.0
             elif obstacle_distance < safe_distance * 0.6:
                 # 较近：重刹
@@ -233,7 +236,17 @@ def main():
         world = client.get_world()
         map = world.get_map()
         blueprint_library = world.get_blueprint_library()
+
         print("连接CARLA模拟器成功")
+        actors_to_destroy = []
+        vehicle_actors = world.get_actors().filter('vehicle.*')
+        for actor in vehicle_actors:
+            actors_to_destroy.append(actor)
+        walker_actors = world.get_actors().filter('walker.pedestrian.*')
+        for actor in walker_actors:
+            actors_to_destroy.append(actor)
+        for actor in actors_to_destroy:
+            actor.destroy()
 
         # 生成交通标志
         elements = spawn_dynamic_elements(world, blueprint_library)
@@ -241,19 +254,27 @@ def main():
 
         # 生成主车辆 特斯拉Model3
         vehicle_bp = blueprint_library.filter("vehicle.tesla.model3")[0]
-        spawn_point = random.choice(map.get_spawn_points())
-        vehicle = world.spawn_actor(vehicle_bp, spawn_point)
-        actor_list.append(vehicle)
-        print(f"车辆生成于: {spawn_point.location}")
 
-        # 生成10辆随机交通车并开启自动行驶
-        for _ in range(10):
-            traffic_bp = random.choice(blueprint_library.filter('vehicle.*'))
-            traffic_spawn = random.choice(map.get_spawn_points())
-            traffic_vehicle = world.try_spawn_actor(traffic_bp, traffic_spawn)
-            if traffic_vehicle:
-                traffic_vehicle.set_autopilot(True)
-                actor_list.append(traffic_vehicle)
+        fixed_location = carla.Location(x=105.906349, y=67.419144, z=0.5)
+        fixed_waypoint = map.get_waypoint(fixed_location, project_to_road=True, lane_type=carla.LaneType.Driving)
+        if fixed_waypoint:
+            fixed_rotation = fixed_waypoint.transform.rotation
+            spawn_point = carla.Transform(fixed_location, fixed_rotation)
+            print("使用固定生成点（已对齐车道方向）")
+        else:
+            all_spawn_points = map.get_spawn_points()
+            spawn_point = random.choice(all_spawn_points)
+            print("无法获取固定点的道路方向，使用随机生成点")
+
+        vehicle = world.try_spawn_actor(vehicle_bp, spawn_point)
+        if not vehicle:
+            all_spawn_points = map.get_spawn_points()
+            spawn_point = random.choice(all_spawn_points)
+            vehicle = world.spawn_actor(vehicle_bp, spawn_point)
+            print("固定点生成失败，使用随机生成点重试")
+
+        actor_list.append(vehicle)
+        print(f"车辆最终生成于: {spawn_point.location}")
 
         # 挂载RGB摄像头到主车辆
         camera_bp = blueprint_library.find("sensor.camera.rgb")
@@ -266,6 +287,9 @@ def main():
 
         # 初始化Pygame窗口
         display = init_pygame(800, 600)
+
+        pygame.font.init()
+        hud_font = pygame.font.SysFont("Arial", 20)  # 使用Arial字体，大小20
 
         # 摄像头回调：接收并转换图像
         image_surface = [None]
@@ -317,25 +341,60 @@ def main():
             final_control.steer = steer
             final_control.brake = 0.0
 
+            #预计算共用变量，避免重复调用
+            shared_detected_signs = None
+            shared_current_speed = None
+            shared_obstacle_distance = None
+            if image_surface[0] is not None:
+                shared_detected_signs = detect_traffic_signs(image_surface[0])
+                # 预计算车速
+                velocity = vehicle.get_velocity()
+                shared_current_speed = math.sqrt(velocity.x ** 2 + velocity.y ** 2 + velocity.z ** 2) * 3.6
+                # 预计算障碍物距离
+                shared_obstacle_distance = detect_front_obstacle(vehicle, world)
+
             # 检测交通标志并控车
             if image_surface[0] is not None:
-                detected_signs = detect_traffic_signs(image_surface[0])
                 simulation_time = time.time() - start_time
                 # 传入基础控制，得到最终控制
                 final_control = control_vehicle_based_on_sign(
                     vehicle,
-                    detected_signs,
+                    shared_detected_signs,
                     world.get_actors().filter("traffic.traffic_light"),
                     simulation_time,
                     final_control,
-                    world
+                    world,
+                    shared_current_speed,
+                    shared_obstacle_distance
                 )
                 # 渲染摄像头画面到Pygame窗口
                 surface = pygame.image.frombuffer(image_surface[0].tobytes(), (800, 600), "RGB")
                 display.blit(surface, (0, 0))
+
+                # 1. 显示当前车速
+                speed_text = hud_font.render(f"Speed: {shared_current_speed:.1f} km/h", True, (255, 255, 255))
+                display.blit(speed_text, (10, 10))
+
+                # 2. 显示前方障碍物距离
+                if shared_obstacle_distance:
+                    obstacle_text = hud_font.render(f"Obstacle: {shared_obstacle_distance:.1f} m", True, (255, 0, 0))
+                else:
+                    obstacle_text = hud_font.render("Obstacle: None", True, (0, 255, 0))
+
+                display.blit(obstacle_text, (10, 40))
+
+                # 3. 显示检测到的交通标志
+                if shared_detected_signs:
+                    sign_label = shared_detected_signs[0][0]  # 取第一个检测到的标志
+                    sign_text = hud_font.render(f"Sign: {sign_label}", True, (255, 255, 0))
+                else:
+                    sign_text = hud_font.render("Sign: None", True, (200, 200, 200))
+
+                display.blit(sign_text, (10, 70))
+
                 pygame.display.flip()
 
-            # 4. 统一执行最终控制指令（只执行一次！）
+            # 统一执行最终控制指令
             vehicle.apply_control(final_control)
 
             # 限制帧率30FPS

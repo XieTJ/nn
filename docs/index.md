@@ -40,6 +40,8 @@ title: 主页
 
 [__carla_CAM__](./carla_CAM/README.md) - 使用类激活映射测试卷积神经网络
 
+[__car_navigation_system__](./car_navigation_system/README.md) - 多模态CARLA导航避障系统
+
 [__跟踪__](#tracking) 
 
 ## 规划 <span id="planning"></span>
