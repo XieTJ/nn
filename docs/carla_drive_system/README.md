@@ -196,99 +196,21 @@ python main.py
 
 ## 📷 截图功能
 
-截图功能是多模态 CARLA 导航避障系统的重要组成部分，用于保存当前驾驶画面，支持实验记录、结果展示和问题排查。
+按 `p` 键保存当前画面，自动命名格式：
 
-### 核心特性
+```
+screenshot_时间戳_地图名_天气_颜色.png
+```
 
-| 功能特性 | 描述 | 状态 |
-|---------|------|------|
-| **一键截图** | 按 `p` 键快速保存当前画面 | ✅ 已完成 |
-| **自动命名** | 文件名包含时间戳、地图、天气、颜色信息 | ✅ 已完成 |
-| **自动分类** | 按日期和场景自动组织截图 | ✅ 已完成 |
-| **多视角支持** | 支持第一人称、第三人称、鸟瞰图视角 | ✅ 已完成 |
+示例：`screenshot_20260512_153022_Town01_clear_Red.png`
 
-### 使用方法
-
-#### 触发方式
-- **按键触发**：按 `p` 键即可保存当前画面
-- **触发时机**：可在任意时刻触发，不影响驾驶控制
-
-#### 输出位置
+**截图目录结构：**
 ```
 screenshots/
 ├── screenshot_20260512_153022_Town01_clear_Red.png
 ├── screenshot_20260512_154510_Town02_rain_Blue.png
 └── screenshot_20260512_160000_Town03_cloudy_Green.png
 ```
-
-### 文件命名规范
-
-#### 命名格式
-```
-screenshot_时间戳_地图名_天气_颜色.png
-```
-
-#### 命名示例
-| 文件名 | 说明 |
-|--------|------|
-| `screenshot_20260512_153022_Town01_clear_Red.png` | 2026年5月12日15:30:22，Town01地图，晴天，红色车辆 |
-| `screenshot_20260512_154510_Town02_rain_Blue.png` | 2026年5月12日15:45:10，Town02地图，雨天，蓝色车辆 |
-| `screenshot_20260512_160000_Town03_cloudy_Green.png` | 2026年5月12日16:00:00，Town03地图，多云，绿色车辆 |
-
-#### 字段说明
-
-| 字段 | 格式 | 示例 | 说明 |
-|------|------|------|------|
-| 时间戳 | `YYYYMMDD_HHmmss` | `20260512_153022` | 年、月、日、时、分、秒 |
-| 地图名 | `TownXX` | `Town01` | CARLA地图名称 |
-| 天气 | 天气类型 | `clear` | 晴天/雨天/多云/湿滑 |
-| 颜色 | 颜色名称 | `Red` | 车辆颜色 |
-
-### 技术实现
-
-核心代码逻辑：
-```python
-def take_screenshot(self):
-    """保存当前画面截图"""
-    # 获取当前时间戳
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    # 获取当前地图名称
-    map_name = self.current_map.split('/')[-1] if self.current_map else "Unknown"
-    
-    # 获取当前天气
-    weather_name = self.weathers[self.current_weather_index]
-    
-    # 获取当前颜色名称
-    color_name = self.car_color_names[self.current_color_index]
-    
-    # 生成文件名
-    filename = f"screenshot_{timestamp}_{map_name}_{weather_name}_{color_name}.png"
-    
-    # 确保目录存在
-    os.makedirs('screenshots', exist_ok=True)
-    
-    # 保存当前视角画面
-    if self.current_view_mode in self.cameras and self.image_data[self.current_view_mode] is not None:
-        cv2.imwrite(f"screenshots/{filename}", self.image_data[self.current_view_mode])
-        print(f"截图已保存: screenshots/{filename}")
-```
-
-### 性能特点
-
-| 指标 | 数值 | 说明 |
-|------|------|------|
-| 保存格式 | PNG | 无损压缩，画质清晰 |
-| 分辨率 | 640 x 480 | 与相机分辨率一致 |
-| 保存速度 | < 100ms | 不影响实时控制 |
-| 文件大小 | ~500KB | 适中，便于存储和分享 |
-
-### 应用场景
-
-1. **实验记录**：记录不同场景下的驾驶状态，保存关键实验数据
-2. **问题排查**：记录异常情况，便于问题复现和分析
-3. **成果展示**：生成演示图片，制作项目文档配图
-4. **数据分析**：配合其他传感器数据进行分析，用于机器学习数据集构建
 
 ---
 
