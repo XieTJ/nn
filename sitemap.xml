@@ -181,11 +181,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://wengqiuyi.github.io/nn/car_navigation_system/</loc>
-         <lastmod>2026-06-13</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://wengqiuyi.github.io/nn/carla_2d_deeprl/</loc>
          <lastmod>2026-06-13</lastmod>
          <changefreq>daily</changefreq>
@@ -207,6 +202,16 @@
     </url>
     <url>
          <loc>https://wengqiuyi.github.io/nn/carla_black_tesla/</loc>
+         <lastmod>2026-06-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://wengqiuyi.github.io/nn/carla_collision_detect/carla_collision_detect/</loc>
+         <lastmod>2026-06-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://wengqiuyi.github.io/nn/carla_deeprl_driver/</loc>
          <lastmod>2026-06-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
