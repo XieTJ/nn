@@ -181,11 +181,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://wengqiuyi.github.io/nn/car_navigation_system/</loc>
-         <lastmod>2026-06-13</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://wengqiuyi.github.io/nn/carla_2d_deeprl/</loc>
          <lastmod>2026-06-13</lastmod>
          <changefreq>daily</changefreq>
@@ -282,6 +277,11 @@
     </url>
     <url>
          <loc>https://wengqiuyi.github.io/nn/drone_hand_gesture/%E8%BF%90%E8%A1%8C%E6%8C%87%E5%8D%97/</loc>
+         <lastmod>2026-06-13</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://wengqiuyi.github.io/nn/drone_path_learning/</loc>
          <lastmod>2026-06-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
