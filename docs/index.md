@@ -68,7 +68,8 @@ title: 主页
 - [__基于自监督学习与PPO强化学习的自动驾驶仿真项目__](./autonomous_driving/README.md) - 基于CARLA的SSL+RL自动驾驶仿真系统
 - [__CARLA天气鲁棒性测试__](./carla_weather_robustness/README.md) - CARLA多天气条件下自动驾驶感知鲁棒性测试系统
 - [__CARLA 模拟器中的物体与碰撞检测系统__](./carla_collision_detect/carla_collision_detect.md) - 物体与碰撞检测
-  
+- [__car_navigation_system__](./car_navigation_system/README.md) - 多模态CARLA导航避障系统
+
 ## 规划 <span id="planning"></span>
 
 [__导航__](#navigation)
